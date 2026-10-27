@@ -77,5 +77,18 @@ The IMovies platform is engineered with modern full-stack JavaScript/TypeScript 
     "tsx": "^4.21.0",
     "typescript": "^7.0.2"
   }
-}
 ```
+
+---
+
+## 5. Cloud Platform Deployment (Render, Railway, Fly.io)
+
+For cloud platforms like **Render**:
+- **Environment**: Node.js
+- **Build Command**: `npm install && npm run build` (or `npm run render-build`)
+- **Start Command**: `npm start` (executes `tsx server.ts`)
+- **Environment Variables**:
+  - `NODE_ENV`: `production`
+  - `PORT`: (automatically provided by Render, typically `10000`)
+- **Resilience Note**: If `npm run build` is omitted during deployment, `server.ts` automatically detects the absence of `dist/index.html` and activates Vite middleware on-the-fly, preventing 404 errors on root route requests.
+

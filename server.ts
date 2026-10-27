@@ -5,6 +5,7 @@
 
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
@@ -27,6 +28,17 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   const PORT: number = Number(process.env.PORT) || 3000;
+
+  // CORS middleware to allow cross-origin API calls and cloud domain routing
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
+    next();
+  });
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
@@ -58,18 +70,24 @@ async function startServer() {
   // Global Error Handler for API routes
   app.use('/api', errorHandler);
 
-  // Frontend integration: Vite middleware in dev, static files in production
-  if (process.env.NODE_ENV !== 'production') {
+  // Frontend integration: Check if dist/index.html is built
+  const distIndexPath = path.resolve(__dirname, 'dist', 'index.html');
+  const distExists = fs.existsSync(distIndexPath);
+
+  if (process.env.NODE_ENV === 'production' && distExists) {
+    console.log('[IMovies] Production mode: Serving pre-built static client from dist/');
+    app.use(express.static(path.resolve(__dirname, 'dist')));
+    app.get('*', (_req, res) => {
+      res.sendFile(distIndexPath);
+    });
+  } else {
+    // Development mode or production deployment where build step was omitted (Render default)
+    console.log(`[IMovies] ${process.env.NODE_ENV === 'production' ? 'Production without pre-built dist/' : 'Development mode'}: Mounting Vite middleware`);
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'
     });
     app.use(vite.middlewares);
-  } else {
-    app.use(express.static(path.resolve(__dirname, 'dist')));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-    });
   }
 
   app.listen(PORT, '0.0.0.0', () => {
