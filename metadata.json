@@ -1,0 +1,6 @@
+{
+  "name": "IMovies - Movie Ticket Booking",
+  "description": "Full-stack movie ticket booking platform with real-time seat reservation, cinema scheduling, simulated payment processing, and comprehensive architecture documentation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
